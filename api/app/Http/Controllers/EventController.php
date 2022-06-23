@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Interfaces\EventRepositoryInterface;
+use App\Repositories\Event\EventRepositoryInterface;
 
 class EventController extends Controller
 {
@@ -21,7 +21,7 @@ class EventController extends Controller
     public function index()
     {
         return response()->json(
-           $this->eventRepository->getAllEvents()
+           $this->eventRepository->getAll()
         );
     }
 
