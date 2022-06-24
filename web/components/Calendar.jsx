@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from '@fullcalendar/interaction'
@@ -6,20 +6,22 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import "@fullcalendar/common/main.css"
 import "@fullcalendar/daygrid/main.css"
 import "@fullcalendar/timegrid/main.css"
-import { Modal, DatePicker, Form, Input } from 'antd'
+import { Modal, DatePicker, Form, Input, Button} from 'antd'
 import moment from 'moment'
+import axios from 'axios'
+import styles from '../styles/Calendar.module.scss'
+import { openCustomNotificationWithIcon } from './common/notification'
 
 const Calendar = () => {
+  const [events, setEvents] = useState([])
+
   const [isModalVisible, setIsModalVisible] = useState(false)
+  const dateFormat = 'YYYY-MM-DD HH:mm:ss'
 
   const [form] = Form.useForm()
 
-  const showModal = (arg) => {
+  const showModal = () => {
     setIsModalVisible(true)
-  }
-
-  const handleOk = () => {
-    setIsModalVisible(false)
   }
 
   const handleCancel = () => {
@@ -28,11 +30,32 @@ const Calendar = () => {
   }
 
   const onSubmit = (values) => {
-    console.log(moment(values.startDate._d).format('MM/DD/YYYY'))
+    const data = {
+      title: values.title,
+      start: moment(values.start_time._d).format(dateFormat),
+      end: moment(values.end_time._d).format(dateFormat)
+    }
+    axios.post(`${process.env.SERVER}/events`, data).then(res => {
+      openCustomNotificationWithIcon('success', res.data.message)
+    }).catch(function (response) {
+      console.log(response)
+    })
+    setIsModalVisible(false)
+    form.resetFields()
   }
 
+  useEffect(() => {
+    const data = axios.get(`${process.env.SERVER}/events`).then(res => {
+      setEvents(res.data)
+    })
+  }, [])
+
   return (
-    <>
+    <div className="container mx-auto relative">
+      <Button type="primary" onClick={showModal} className={styles.button + ' absolute top-9 border-solid border-2 rounded-sm'}>
+        Add Event
+      </Button>
+
       <FullCalendar
           plugins={[
             dayGridPlugin,
@@ -41,16 +64,16 @@ const Calendar = () => {
         ]}
         titleFormat={{ year: 'numeric', month: 'long' }}
         editable={true}
+        events={events}
         headerToolbar={{
           left: 'prev,next,today',
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay',
         }}
-        dateClick={showModal}
       />
 
       <Modal 
-        title="New Title"
+        title="New Event"
         visible={isModalVisible} 
         onOk={form.submit}
         onCancel={handleCancel}
@@ -68,7 +91,7 @@ const Calendar = () => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="startDate"
+            name="start_time"
             label="Start Date"
             rules={[
               {
@@ -76,10 +99,12 @@ const Calendar = () => {
               },
             ]}
           >
-            <DatePicker showTime/>
+            <DatePicker 
+              showTime 
+            />
           </Form.Item>
           <Form.Item
-            name="endDate"
+            name="end_time"
             label="End Date"
             rules={[
               {
@@ -87,12 +112,13 @@ const Calendar = () => {
               },
             ]}
           >
-            <DatePicker showTime/>
+            <DatePicker 
+              showTime 
+            />
           </Form.Item>
         </Form>
       </Modal>
-    </>
-    
+    </div>
   )
 }
 

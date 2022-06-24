@@ -43,7 +43,10 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->eventRepository->create($request->all());
+        return response()->json([
+            'message' => 'Save Successfully'
+        ]);
     }
 
     /**

@@ -11,4 +11,7 @@ const withTM = require("next-transpile-modules")([
 /** @type {import('next').NextConfig} */
 module.exports = withTM({
   // any other next.js settings here
+  env: {
+    SERVER: process.env.SERVER
+  }
 });

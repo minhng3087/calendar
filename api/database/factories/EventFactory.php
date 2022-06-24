@@ -23,8 +23,8 @@ class EventFactory extends Factory
         $date = Carbon::create($year,$month ,$day , $hour, $minute, $second);
         return [
             'title' => $this->faker->name,
-            'start_time'  => $date->format('Y-m-d H:i:s'),
-            'end_time'  => $date->addWeeks(rand(1, 52))->format('Y-m-d H:i:s')
+            'start'  => $date->format('Y-m-d H:i:s'),
+            'end'  => $date->addWeeks(rand(1, 52))->format('Y-m-d H:i:s')
         ];
     }
 }
