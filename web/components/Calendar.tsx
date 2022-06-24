@@ -9,7 +9,7 @@ import "@fullcalendar/timegrid/main.css"
 import { Modal, DatePicker, Form, Input, Button} from 'antd'
 import moment from 'moment'
 import axios from 'axios'
-import styles from '../styles/Calendar.module.scss'
+import styles from '../styles/components/Calendar.module.scss'
 import { openCustomNotificationWithIcon } from './common/notification'
 
 const Calendar = () => {
@@ -29,11 +29,11 @@ const Calendar = () => {
     form.resetFields()
   }
 
-  const onSubmit = (values) => {
+  const onSubmit = (values: any) => {
     const data = {
       title: values.title,
-      start: moment(values.start_time._d).format(dateFormat),
-      end: moment(values.end_time._d).format(dateFormat)
+      start: values.start_time && moment(values.start_time._d).format(dateFormat),
+      end: values.end_time && moment(values.end_time._d).format(dateFormat)
     }
     axios.post(`${process.env.SERVER}/events`, data).then(res => {
       openCustomNotificationWithIcon('success', res.data.message)
@@ -52,7 +52,7 @@ const Calendar = () => {
 
   return (
     <div className="container mx-auto relative">
-      <Button type="primary" onClick={showModal} className={styles.button + ' absolute top-9 border-solid border-2 rounded-sm'}>
+      <Button type="primary" onClick={showModal} className={styles.button + ' absolute top-1 border-solid border-2 rounded-sm'}>
         Add Event
       </Button>
 
@@ -106,11 +106,6 @@ const Calendar = () => {
           <Form.Item
             name="end_time"
             label="End Date"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
           >
             <DatePicker 
               showTime 

@@ -1,6 +1,5 @@
-import {  notification } from "antd";
-
-const getNotificationStyle = (type) => {
+import {  notification } from "antd"
+const getNotificationStyle = (type: string) => {
   return {
     success: {
       color: "rgba(0, 0, 0, 0.65)",
@@ -22,14 +21,13 @@ const getNotificationStyle = (type) => {
       border: "1px solid #91d5ff",
       backgroundColor: "#e6f7ff"
     }
-  }[type];
-};
+  }[type]
+}
 
-export const openCustomNotificationWithIcon = (type, message) => {
-  notification[type]({
+export const openCustomNotificationWithIcon = (type: any, message: string) => {
+  notification.open ({
     message: message,
+    type: type,
     style: getNotificationStyle(type),
-    duration: 0
-  });
-};
-
+  })
+}
