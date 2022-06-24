@@ -45,7 +45,7 @@ abstract class BaseRepository implements RepositoryInterface
 
     public function update($id, $attributes = [])
     {
-        $result = $this->findOrFail($id);
+        $result = $this->find($id);
         if ($result) {
             $result->update($attributes);
             return $result;
@@ -56,7 +56,7 @@ abstract class BaseRepository implements RepositoryInterface
 
     public function delete($id)
     {
-        $result = $this->findOrFail($id);
+        $result = $this->find($id);
         if ($result) {
             $result->delete();
 

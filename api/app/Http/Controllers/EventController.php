@@ -45,7 +45,7 @@ class EventController extends Controller
     {
         $this->eventRepository->create($request->all());
         return response()->json([
-            'message' => 'Save Successfully'
+            'message' => 'Create Successfully'
         ]);
     }
 
@@ -57,7 +57,7 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        //
+        return response()->json($this->eventRepository->find($id));
     }
 
     /**
@@ -80,7 +80,10 @@ class EventController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $this->eventRepository->update($id, $request->all());
+        return response()->json([
+            'message' => 'Edit Successfully'
+        ]);
     }
 
     /**
