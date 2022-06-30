@@ -94,6 +94,9 @@ class EventController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $this->eventRepository->delete($id);
+        return response()->json([
+            'message' => 'Delete Successfully'
+        ]);
     }
 }

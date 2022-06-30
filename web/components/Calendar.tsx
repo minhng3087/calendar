@@ -12,9 +12,16 @@ import axios from 'axios'
 import styles from '../styles/components/Calendar.module.scss'
 import { openCustomNotificationWithIcon } from './common/notification'
 
-const Calendar = () => {
+interface CalendarElement {
+  id?: Number,
+  title: String,
+  start: Object,
+  end: Object
+}
+
+const Calendar: React.FC = () => {
   
-  const [events, setEvents] = useState([])
+  const [events, setEvents] = useState([] as any)
   const [eventEdit, setEventEdit] = useState(false)
 
   const [isModalVisible, setIsModalVisible] = useState(false)
@@ -43,13 +50,17 @@ const Calendar = () => {
   }
 
   const onSubmit = (values: any) => {
-    const data = {
+    const data : CalendarElement = {
       title: values.title,
       start: values.start_time && moment(values.start_time._d).format(dateFormat),
       end: values.end_time && moment(values.end_time._d).format(dateFormat)
     }
     if(eventEdit) {
       axios.put(`${process.env.SERVER}/events/${values.id}`, data).then(res => {
+        const updatedItem = events.map((todo: CalendarElement) => {
+          return todo.id === values.id ? data : todo
+        })
+        setEvents(updatedItem)
         openCustomNotificationWithIcon('success', res.data.message)
       }).catch(function (response) {
         console.log(response)
@@ -57,6 +68,7 @@ const Calendar = () => {
       setEventEdit(false)
     }else {
       axios.post(`${process.env.SERVER}/events`, data).then(res => {
+        setEvents([...events, data])
         openCustomNotificationWithIcon('success', res.data.message)
       }).catch(function (response) {
         console.log(response)
@@ -64,7 +76,21 @@ const Calendar = () => {
     }
     setIsModalVisible(false)
     form.resetFields()
-    
+  }
+
+  const handleDelete = () => {
+    const id = form.getFieldValue('id')
+    axios.delete(`${process.env.SERVER}/events/${id}`).then(res => {
+      const updatedItem = events.filter((event: CalendarElement) => {
+        return event.id !== id
+      })
+      setEvents(updatedItem)
+      openCustomNotificationWithIcon('success', res.data.message)
+    }).catch(function (response) {
+      console.log(response)
+    })
+    setIsModalVisible(false)
+    form.resetFields()
   }
 
   useEffect(() => {
@@ -100,8 +126,27 @@ const Calendar = () => {
       <Modal 
         title={eventEdit ? 'Edit Event' : 'New Event'}
         visible={isModalVisible} 
-        onOk={form.submit}
+        // onOk={form.submit}
         onCancel={handleCancel}
+        // footer={[
+        //   <Button type="primary" danger>
+        //     Delete
+        //   </Button>
+        // ]}
+        footer={[
+          <Button key="back" onClick={handleCancel}>
+            Cancel
+          </Button>,
+          eventEdit && <Button key="submit" type="primary" danger onClick={handleDelete}>
+            Delete
+          </Button>,
+          <Button
+            onClick={form.submit}
+            type="primary"
+          >
+            Submit
+          </Button>,
+        ]}
       >
         <Form onFinish={onSubmit} form={form}>
           <Form.Item
