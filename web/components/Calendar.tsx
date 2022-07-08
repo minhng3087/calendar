@@ -8,10 +8,9 @@ import "@fullcalendar/daygrid/main.css"
 import "@fullcalendar/timegrid/main.css"
 import { Modal, DatePicker, Form, Input, Button} from 'antd'
 import moment from 'moment'
-import axios from 'axios'
 import styles from '../styles/components/Calendar.module.scss'
 import { openCustomNotificationWithIcon } from './common/notification'
-
+import calendarApi from '../pages/api/calendarApi'
 interface CalendarElement {
   id?: Number,
   title: String,
@@ -29,16 +28,19 @@ const Calendar: React.FC = () => {
 
   const [form] = Form.useForm()
 
-  const showModal = (arg: any) => {
+  const showModal = async (arg: any) => {
     if(arg.event){
-      axios.get(`${process.env.SERVER}/events/${arg.event.id}`).then(res => {
+      try {
+        const res = await calendarApi.getDetailEvent(arg.event.id)
         form.setFieldsValue({
           id: res.data.id,
           title: res.data.title,
           start_time: moment(res.data.start),
           end_time: moment(res.data.end),
         })
-      })
+      }catch (err) {
+        console.error(err)
+      }
       setEventEdit(true)
     }
     setIsModalVisible(true)
@@ -49,54 +51,65 @@ const Calendar: React.FC = () => {
     form.resetFields()
   }
 
-  const onSubmit = (values: any) => {
+  const onSubmit = async (values: any) => {
     const data : CalendarElement = {
       title: values.title,
       start: values.start_time && moment(values.start_time._d).format(dateFormat),
       end: values.end_time && moment(values.end_time._d).format(dateFormat)
     }
     if(eventEdit) {
-      axios.put(`${process.env.SERVER}/events/${values.id}`, data).then(res => {
+      try {
+        const response = await calendarApi.updateEvent(values.id, data)
         const updatedItem = events.map((todo: CalendarElement) => {
           return todo.id === values.id ? data : todo
         })
         setEvents(updatedItem)
-        openCustomNotificationWithIcon('success', res.data.message)
-      }).catch(function (response) {
-        console.log(response)
-      })
+        openCustomNotificationWithIcon('success', response.data.message)
+      }catch (err) {
+        console.log(err)
+      }
       setEventEdit(false)
     }else {
-      axios.post(`${process.env.SERVER}/events`, data).then(res => {
+      try {
+        const response = await calendarApi.addEvent(data)
         setEvents([...events, data])
-        openCustomNotificationWithIcon('success', res.data.message)
-      }).catch(function (response) {
-        console.log(response)
-      })
+        openCustomNotificationWithIcon('success', response.data.message)
+      }catch (err) {
+        console.log(err)
+      }
     }
     setIsModalVisible(false)
     form.resetFields()
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const id = form.getFieldValue('id')
-    axios.delete(`${process.env.SERVER}/events/${id}`).then(res => {
+    try {
+      const response = await calendarApi.removeEvent(id)
       const updatedItem = events.filter((event: CalendarElement) => {
         return event.id !== id
       })
       setEvents(updatedItem)
-      openCustomNotificationWithIcon('success', res.data.message)
-    }).catch(function (response) {
-      console.log(response)
-    })
+      openCustomNotificationWithIcon('success', response.data.message)
+    }catch (err) {
+      console.log(err)
+    }
+
     setIsModalVisible(false)
     form.resetFields()
   }
 
   useEffect(() => {
-    axios.get(`${process.env.SERVER}/events`).then(res => {
-      setEvents(res.data)
-    })
+    const fetchEventList = async () => {
+      try {
+        const response = await calendarApi.getAll()
+        setEvents(response.data)
+      }catch (err) {
+        console.log(err)
+      }
+    }
+
+    fetchEventList()
   }, [])
 
   return (
@@ -126,13 +139,7 @@ const Calendar: React.FC = () => {
       <Modal 
         title={eventEdit ? 'Edit Event' : 'New Event'}
         visible={isModalVisible} 
-        // onOk={form.submit}
         onCancel={handleCancel}
-        // footer={[
-        //   <Button type="primary" danger>
-        //     Delete
-        //   </Button>
-        // ]}
         footer={[
           <Button key="back" onClick={handleCancel}>
             Cancel
